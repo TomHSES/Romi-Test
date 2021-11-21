@@ -4,10 +4,14 @@
 
 package frc.robot;
 
+import javax.swing.plaf.basic.BasicSplitPaneUI.KeyboardUpLeftHandler;
+
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
+import java.util.Scanner;
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation. If you change the name of this class or
@@ -15,10 +19,22 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * project.
  */
 public class Robot extends TimedRobot {
+  DigitalInput buttonA = new DigitalInput(0);
+  DigitalInput buttonB = new DigitalInput(1);
+  DigitalOutput yellowLED = new DigitalOutput(3);
   private static final String kDefaultAuto = "Default";
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
+  int runs = 0;
+  double targetSpeed = 0.3;
+  public static Scanner KeyboardInput;
+
+  public static double ConvertDegreeToRadian(double degree)
+  {
+    degree *= Math.PI / 180;
+    return degree;
+  }
 
   private final RomiDrivetrain m_drivetrain = new RomiDrivetrain();
 
@@ -55,6 +71,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
+    yellowLED.set(false);
     m_autoSelected = m_chooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
@@ -78,11 +95,29 @@ public class Robot extends TimedRobot {
 
   /** This function is called once when teleop is enabled. */
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+    KeyboardInput = new Scanner(System.in);
+    runs = 0;
+    targetSpeed = 0.3;
+    yellowLED.set(true);
+  }
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    double rotation = 0;
+
+    if (++runs < 70)
+    {
+      m_drivetrain.arcadeDrive(targetSpeed, rotation);
+    }
+    else
+    {
+      m_drivetrain.arcadeDrive(0, rotation);
+    }
+   
+    targetSpeed *= 0.99f;
+}
 
   /** This function is called once when the robot is disabled. */
   @Override
